@@ -8,6 +8,7 @@ import os
 import random
 import string
 import shutil
+import sys
 
 def get_random_string(length):
     letters = string.ascii_lowercase
@@ -47,6 +48,7 @@ def run(file):
 
             # Parse the html content
             soup = BeautifulSoup(self.driver.page_source, "html.parser")
+            print(soup, file=sys.stderr)
             url = soup.article.find_all('div', recursive=False)[1].img['src']
             return url
 
@@ -66,9 +68,9 @@ def run(file):
     for link in links:
         try:
             results.append({"original": link, "result": parser.process_post(link)})
-        except:
+        except Exception as ex:
             #results.append({"original": link, "result": ""})
-            fails.append({"original": link, "result": ""})
+            fails.append({"original": link, "failure": ex})
 
     parser.driver.close()
 
@@ -77,6 +79,13 @@ def run(file):
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for result in results:
+            writer.writerow(result)
+
+    with open(path + "/fails.csv", "w", newline="") as csv_file:
+        fieldnames = ['original', 'failure']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for result in fails:
             writer.writerow(result)
 
 
