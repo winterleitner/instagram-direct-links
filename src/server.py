@@ -1,7 +1,9 @@
 from flask import Flask, request, flash, send_file, Response
+from flask_cors import CORS
 import app as insta
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = b'_5#y3L"G6Q8d\n\xec]/'
 
 ALLOWED_EXTENSIONS = {'csv'}
