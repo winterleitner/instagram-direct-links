@@ -30,5 +30,10 @@ def upload_csv():
     return send_file(res)
 
 
+@app.route('/version', methods=['GET'])
+def version():
+    return Response("1.1", 200)
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
