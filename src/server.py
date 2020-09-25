@@ -25,9 +25,24 @@ def upload_csv():
         if file.filename == '':
             return Response("No File", 404)
         if file and allowed_file(file.filename):
-            res = insta.run(file)
+            res = insta.scrape(file)
 
-    return send_file(res)
+    return send_file(res)\
+
+@app.route('/update-gallery', methods=['POST'])
+def update_slideshow():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files or 'gallery' not in request.form or 'username' not in request.form or 'password' not in request.form:
+            flash('Missing Parameter(s)')
+            return Response("Missing Parameter(s)", 400)
+        file = request.files['file']
+        if file.filename == '':
+            return Response("No File", 400)
+        if file and allowed_file(file.filename):
+            res = insta.update_gallery(file, request.form['gallery'], request.form['username'], request.form['password'])
+
+    return Response("", 200)
 
 
 @app.route('/version', methods=['GET'])

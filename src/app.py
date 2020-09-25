@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import selenium.webdriver as webdriver
+from selenium.webdriver.common.keys import Keys
 import csv
 import time
 import wget
@@ -15,7 +16,56 @@ def get_random_string(length):
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
-def run(file):
+#uses selenium to update links in an elfsight gallery
+def update_gallery(file, gallery, email, password, append=False):
+    #driver = webdriver.Safari()
+
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_prefs = {}
+    chrome_options.experimental_options["prefs"] = chrome_prefs
+    chrome_prefs["profile.default_content_settings"] = {"images": 2}
+    # self.driver = webdriver.Safari()
+    driver = webdriver.Chrome(options=chrome_options)
+
+    links = []
+    stream = codecs.iterdecode(file.stream, 'utf-8')
+    csv_reader = csv.reader(stream, delimiter=',')
+    for row in csv_reader:
+        links.append(row[0])
+
+    #driver.set_window_size(1800, 724)
+    driver.get("https://apps.elfsight.com/panel/applications/instashow/")
+    mail = driver.find_element_by_name("email")
+    mail.send_keys(email)
+    passsword = driver.find_element_by_name("password")
+    passsword.send_keys(password)
+    passsword.send_keys(Keys.RETURN)
+    time.sleep(3)
+    driver.get(f"https://apps.elfsight.com/panel/applications/instashow/edit/{gallery}/")
+    time.sleep(2)
+
+    if not append:
+        # remove all existing entries for gallery
+        driver.execute_script("""
+            while (document.getElementsByClassName("ea-editor-property-control-tags-item-remove").length > 0) {
+                document.getElementsByClassName("ea-editor-property-control-tags-item-remove").forEach(e => e.click())
+            }
+        """)
+
+    input = driver.find_element_by_class_name("ea-editor-property-control-tags-input")
+    for link in links:
+        input.send_keys(link)
+        input.send_keys(Keys.RETURN)
+    time.sleep(1)
+    driver.find_element_by_class_name("widgets-edit-header-actions-item-apply").send_keys(Keys.ENTER)
+    driver.close()
+    return True
+
+
+def scrape(file):
     path = get_random_string(8)
 
     try:
